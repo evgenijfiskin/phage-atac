@@ -134,15 +134,6 @@ pbmc.atac[["ADT"]] <- CreateAssayObject(counts = cite.pa)
 pbmc.atac <- NormalizeData(pbmc.atac, assay = "ADT", normalization.method = "CLR")
 pbmc.atac <- ScaleData(pbmc.atac, assay = "ADT")
 pbmc.atac[["umapd"]] <- CreateDimReducObject(embeddings = coembed@reductions$umap@cell.embeddings[coembed$tech == "atac",], key = "UMAPd", assay = "ATAC")
-FeaturePlot(pbmc.atac, features = c("adt_CD16", "adt_CD4", "adt_CD8"),
-            min.cutoff = "q01", max.cutoff = "q99", ncol = 3, reduction = "umapd")
-
-# Visualize ridge plots
-RidgePlot(pbmc.atac, features = c("adt_CD4", "adt_CD8", "adt_CD16"), ncol = 3, 
-          group.by = "predicted.id")
-
-RidgePlot(pbmc.cite, features = c("adt_CD4", "adt_CD8", "adt_CD16"), ncol = 3)
-
 
 # Try it all together
 coembed@assays$ADT@scale.data <- cbind(pbmc.cite@assays$ADT@scale.data, pbmc.atac@assays$ADT@scale.data )
