@@ -6,10 +6,10 @@ library(dplyr)
 #-----
 # Analyze PBMC phage atac
 #-----
-peaks <- Read10X_h5("../../../phage_atac_large_data_files/input/pbmcs/phage_atac_pbmcs/outs/filtered_peak_bc_matrix.h5")
+peaks <- Read10X_h5("../../../phage_atac_large_data_files/input/pbmcs/phage_atac_pbmcs_aggr/outs/filtered_peak_bc_matrix.h5")
 pbmc.atac <- CreateSeuratObject(counts = peaks, assay = "ATAC", project = "10x_ATAC")
 pbmc.atac[["ACTIVITY"]] <- CreateAssayObject(counts = readRDS("../../../phage_atac_large_data_files/output/pbmcs/signac_bothChannels_ga.rds"))
-meta <- read.table("../../../phage_atac_large_data_files/input/pbmcs/phage_atac_pbmcs/outs/singlecell.csv",
+meta <- read.table("../../../phage_atac_large_data_files/input/pbmcs/phage_atac_pbmcs_aggr/outs/singlecell.csv",
                    sep = ",", header = TRUE, row.names = 1, 
                    stringsAsFactors = FALSE)
 meta <- meta[colnames(pbmc.atac), ]
@@ -73,11 +73,11 @@ transfer.anchors <- FindTransferAnchors(reference = pbmc.cite, query = pbmc.atac
                                         reference.assay = "RNA", query.assay = "ACTIVITY", reduction = "cca")
 
 # transfer clusters
-celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbmc.cite$seurat_clusters, 
-                                     weight.reduction = pbmc.atac[["lsi"]])
-pbmc.atac <- AddMetaData(pbmc.atac, metadata = celltype.predictions)
-hist(pbmc.atac$prediction.score.max)
-abline(v = 0.5, col = "red")
+#celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbmc.cite$seurat_clusters, 
+#                                     weight.reduction = pbmc.atac[["lsi"]])
+#pbmc.atac <- AddMetaData(pbmc.atac, metadata = celltype.predictions)
+#hist(pbmc.atac$prediction.score.max)
+#abline(v = 0.5, col = "red")
 
 # joint embedding
 genes.use <- VariableFeatures(pbmc.cite)
@@ -88,12 +88,13 @@ coembed <- merge(x = pbmc.cite, y = pbmc.atac)
 
 coembed <- ScaleData(coembed, features = genes.use, do.scale = FALSE)
 coembed <- RunPCA(coembed, features = genes.use, verbose = FALSE)
-coembed <- RunUMAP(coembed, dims = 1:30)
+coembed <- FindNeighbors(coembed, dims = 1:25)
+coembed <- FindClusters(coembed, resolution = 0.4)
+coembed <- RunUMAP(coembed, dims = 1:25)
 
-coembed$seurat_clusters_m <- ifelse(!is.na(coembed$seurat_clusters), coembed$seurat_clusters, coembed$predicted.id)
 coembed$tech <- ifelse(!is.na(coembed$tech), coembed$tech, "RNA")
 
-DimPlot(coembed, group.by = 'seurat_clusters_m', split.by = "tech")
+DimPlot(coembed, group.by = 'seurat_clusters', split.by = "tech",  label = TRUE)
 
 # Import phage atac data
 import_tag <- function(tag, cells){
@@ -129,7 +130,6 @@ pbmc.cite[["umapd"]] <- CreateDimReducObject(embeddings = coembed@reductions$uma
 FeaturePlot(pbmc.cite, features = c("adt_CD16", "adt_CD4", "adt_CD8"),
             min.cutoff = "q01", max.cutoff = "q99", ncol = 3, reduction = "umapd")
 
-pbmc.atac$predicted.id <- factor(as.character(pbmc.atac$predicted.id),levels = levels(pbmc.cite$seurat_clusters))
 pbmc.atac[["ADT"]] <- CreateAssayObject(counts = cite.pa)
 pbmc.atac <- NormalizeData(pbmc.atac, assay = "ADT", normalization.method = "CLR")
 pbmc.atac <- ScaleData(pbmc.atac, assay = "ADT")
@@ -141,5 +141,5 @@ coembed@assays$ADT@scale.data <- cbind(pbmc.cite@assays$ADT@scale.data, pbmc.ata
 FeaturePlot(coembed, features = c("adt_CD16", "adt_CD4", "adt_CD8"),
             min.cutoff = "q01", max.cutoff = "q99", ncol = 3)
 
-save(coembed, pbmc.atac, pbmc.rna, file = "../../../phage_atac_large_data_files/output/pbmcs/28July2020_analyzed_seurat_objects.rda")
+save(coembed, pbmc.atac, pbmc.cite, file = "../../../phage_atac_large_data_files/output/pbmcs/28July2020_analyzed_seurat_objects.rda")
 
