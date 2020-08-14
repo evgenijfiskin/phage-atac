@@ -15,14 +15,17 @@ tenx_df <- fread("../data/evolved/Fig2_singlecell.csv.gz")
 commercial_df_all <- left_join(tenx_df, commercial_df, by = "barcode")
 commercial_df_all$eGFP_counts <- ifelse(!is.na(commercial_df_all$eGFP_counts), commercial_df_all$eGFP_counts, 0)
 
-ggplot(commercial_df_all, aes(x = passed_filters_GRCh38, y = passed_filters_mm10)) + 
+commercial_df_all$FRIP <- commercial_df_all$peak_region_fragments/commercial_df_all$passed_filters
+ggplot(commercial_df_all %>% dplyr::filter(cell_id != "None"), aes(x = passed_filters_GRCh38, y = passed_filters_mm10, color = FRIP)) + 
   geom_point(size = 0.2) + scale_y_log10() + scale_x_log10() +
-  pretty_plot(fontsize = 8) + L_border()
+  pretty_plot(fontsize = 8) + L_border() + scale_color_viridis()
 
 
 # Make Plots
 
-phage <- commercial_df_all %>% filter(is_GRCh38_cell_barcode == 1) %>% mutate(classification = ifelse(eGFP_counts > 1000, "high", "low"))
+phage$purity <- phage$peak_region_fragments_GRCh38 / (phage$peak_region_fragments_GRCh38 + phage$peak_region_fragments_mm10)
+phage <- commercial_df_all %>% filter(is_GRCh38_cell_barcode == 1 & peak_region_fragments_GRCh38 > 5000 & FRIP > 0.2 & purity > 0.98) %>% mutate(classification = ifelse(eGFP_counts > 1000, "high", "low"))
+
 pPhage2 <- ggplot(phage , aes(x = log10(eGFP_counts), fill = classification)) +
   geom_histogram(data = phage %>% filter(classification == "low"), aes(y = ..density..), alpha = 0.3) +
   geom_histogram(data = phage %>% filter(classification == "high"), aes(y = ..density..), alpha = 0.3) +
@@ -32,6 +35,8 @@ pPhage2 <- ggplot(phage , aes(x = log10(eGFP_counts), fill = classification)) +
   scale_fill_manual(values = c("firebrick", "dodgerblue2")) +
   ggtitle("Phage") + labs(x = "log10 eGFP (reads)") +
   theme(legend.position = "none") + theme(plot.title = element_text(size = 8))
+pPhage2
+qplot(log10(phage$eGFP_counts))
 
 #cowplot::ggsave2(cowplot::plot_grid(pFacs, pPhage, ncol = 1), 
 #                 file = "../plots/histograms_gfp2.pdf", width = 1.3, height = 2.2)

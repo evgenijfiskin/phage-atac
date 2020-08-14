@@ -23,6 +23,7 @@ pbmc.atac <- RunUMAP(pbmc.atac, reduction = "lsi", dims = 2:20)
 pbmc.atac <- FindNeighbors(pbmc.atac, reduction = "lsi")
 pbmc.atac <- FindClusters(pbmc.atac, resolution = 0.2)
 DimPlot(pbmc.atac, reduction = "umap", label = TRUE)  + ggtitle("scATAC-seq")
+cluster9 <- rownames(pbmc.atac@meta.data)[pbmc.atac@meta.data$seurat_clusters == "9"]
 
 FeaturePlot(object = pbmc.atac,
             features = c('CD3D','CD4','CD8A','LEF1','BCL11B','NKG7',

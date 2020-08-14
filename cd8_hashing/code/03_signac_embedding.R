@@ -47,12 +47,16 @@ cd8s <- RunSVD(
 # Make an embedding
 cd8s <- RunUMAP(object = cd8s, reduction = 'lsi', dims = 2:20)
 cd8s <- FindNeighbors(object = cd8s, reduction = 'lsi', dims = 2:20)
-cd8s <- FindClusters(object = cd8s, resolution = 0.5)
+cd8s <- FindClusters(object = cd8s, resolution = 0.2, algorithm = 3)
 DimPlot(object = cd8s, label = TRUE) + NoLegend()
 
 cmat_for_seurat <- t(cmat); colnames(cmat_for_seurat) <- paste0(colnames(cmat_for_seurat), "-1")
 cd8s[["ADT"]] <- CreateAssayObject(counts = cmat_for_seurat)
 cd8s <- NormalizeData(cd8s, assay = "ADT", normalization.method = "CLR") %>% ScaleData(assay = "ADT")
 cd8s$maxCD8 <- matrixStats::colMaxs(cd8s@assays$ADT@scale.data)
-
+gene.activities <- readRDS("../../../phage_atac_large_data_files/output/CD8_hashing/CD8hashed.gene_activities.rds")
+cd8s[["RNA"]] <- CreateAssayObject(counts = gene.activities)
 FeaturePlot(cd8s, c("c50", "c51", "c54", "c55", "maxCD8"))
+saveRDS(cd8s, file = "../../../phage_atac_large_data_files/output/CD8_hashing/CD8hashed.seuratDimreduction.rds")
+
+

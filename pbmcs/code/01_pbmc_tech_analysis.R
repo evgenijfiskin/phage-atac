@@ -57,7 +57,7 @@ dim(rna_filt)
 dim(rna_filt)
 
 # Do Seurat things
-pbmc.cite <- CreateSeuratObject(counts = rna_filt)
+pbmc.cite <- CreateSeuratObject(counts = rna_filt, assay = "RNA", project = "10x_RNA")
 pbmc.cite <- NormalizeData(pbmc.cite)
 pbmc.cite <- FindVariableFeatures(pbmc.cite)
 pbmc.cite <- ScaleData(pbmc.cite)
@@ -72,28 +72,19 @@ transfer.anchors <- FindTransferAnchors(reference = pbmc.cite, query = pbmc.atac
                                         features = VariableFeatures(object = pbmc.cite), 
                                         reference.assay = "RNA", query.assay = "ACTIVITY", reduction = "cca")
 
-# transfer clusters
-#celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbmc.cite$seurat_clusters, 
-#                                     weight.reduction = pbmc.atac[["lsi"]])
-#pbmc.atac <- AddMetaData(pbmc.atac, metadata = celltype.predictions)
-#hist(pbmc.atac$prediction.score.max)
-#abline(v = 0.5, col = "red")
-
 # joint embedding
 genes.use <- VariableFeatures(pbmc.cite)
 refdata <- GetAssayData(pbmc.cite, assay = "RNA", slot = "data")[genes.use, ]
 imputation <- TransferData(anchorset = transfer.anchors, refdata = refdata, weight.reduction = pbmc.atac[["lsi"]])
 pbmc.atac[["RNA"]] <- imputation
 coembed <- merge(x = pbmc.cite, y = pbmc.atac)
+coembed$tech <- ifelse(!is.na(coembed$tech), coembed$tech, "RNA")
 
 coembed <- ScaleData(coembed, features = genes.use, do.scale = FALSE)
 coembed <- RunPCA(coembed, features = genes.use, verbose = FALSE)
-coembed <- FindNeighbors(coembed, dims = 1:25)
-coembed <- FindClusters(coembed, resolution = 0.4)
-coembed <- RunUMAP(coembed, dims = 1:25)
-
-coembed$tech <- ifelse(!is.na(coembed$tech), coembed$tech, "RNA")
-
+coembed <- FindNeighbors(coembed, dims = 1:20)
+coembed <- FindClusters(coembed, resolution = 0.3)
+coembed <- RunUMAP(coembed, dims = 1:25, seed.use = 2)
 DimPlot(coembed, group.by = 'seurat_clusters', split.by = "tech",  label = TRUE)
 
 # Import phage atac data
