@@ -76,6 +76,8 @@ mdf <- mdf %>% dplyr::filter(!(cluster %in% c("Megakaryocyte", "Granulocyte")))
 
 min(mdf[,c(4,7)])
 max(mdf[,c(4,7)])
+cor.test(mdf[,c(4)],mdf[,c(7)])
+
 ps1 <- ggplot(mdf, aes(x = CD16.x, y = CD16.y, color = cluster)) +
   geom_point(size = 0.9) + pretty_plot(fontsize = 8) + L_border() +
   labs(x = "CD16 Phage", y = "CD16 CITE") +
@@ -87,6 +89,9 @@ ps1 <- ggplot(mdf, aes(x = CD16.x, y = CD16.y, color = cluster)) +
 
 min(mdf[,c(2,5)])
 max(mdf[,c(2,5)])
+cor.test(mdf[,c(2)],mdf[,c(5)])
+
+
 ps2 <- ggplot(mdf, aes(x = CD4.x, y = CD4.y, color = cluster)) +
   geom_point(size = 0.9) + pretty_plot(fontsize = 8) + L_border() +
   labs(x = "CD4 Phage", y = "CD4 CITE") +
@@ -97,6 +102,8 @@ ps2 <- ggplot(mdf, aes(x = CD4.x, y = CD4.y, color = cluster)) +
 
 min(mdf[,c(3,6)])
 max(mdf[,c(3,6)])
+cor.test(mdf[,c(3)],mdf[,c(6)])
+
 ps3 <- ggplot(mdf, aes(x = CD8.x, y = CD8.y, color = cluster)) +
   geom_point(size = 0.9) + pretty_plot(fontsize = 8) + L_border() +
   labs(x = "CD8 Phage", y = "CD8 CITE") +
@@ -143,3 +150,7 @@ pC3 <- FeaturePlot(pbmc.cite, features = c("adt_CD8"),
 cowplot::ggsave2(cowplot::plot_grid(pC1, pC2, pC3, pP1, pP2, pP3, ncol =3), 
                  file = "../plots/UMAP_ADTs_stack.png", width = 9, height = 6, dpi = 500)
 
+
+sapply(c("CD8", "CD4", "CD16"), function(x){
+  quantile(pbmc.atac@assays$ADT@data[x,],c(0.01, 0.99))
+})

@@ -2,6 +2,7 @@ library(Seurat)
 library(BuenColors)
 library(dplyr)
 library(viridis)
+library(data.table)
 load("../../../phage_atac_large_data_files/output/pbmcs/28July2020_analyzed_seurat_objects.rda")
 
 # Import phage atac data

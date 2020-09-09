@@ -8,11 +8,16 @@ cd8s <- readRDS(file = "../../../phage_atac_large_data_files/output/CD8_hashing/
 Idents(cd8s) <- "ADT_maxID"
 pR <- RidgePlot(cd8s, assay = "ADT", 
                 features = rownames(cd8s[["ADT"]])[1:4], ncol = 4, cols = jdb_palette("corona"))
-ggsave(pR, file = "../plots/HTO_ridges.pdf", width = 10, height = 2.5)  
+#ggsave(pR, file = "../plots/HTO_ridges.pdf", width = 10, height = 2.5)  
 
 # Visualize
 Idents(cd8s) <- "ADT_classification.global"
 cd8s.hashtag.subset <- subset(cd8s, idents = "Negative", invert = TRUE)
+
+sapply(rownames(cd8s.hashtag.subset@assays$ADT@data), function(x){
+  quantile(cd8s.hashtag.subset@assays$ADT@data[x,],c(0.00, 0.99))
+})
+
 
 # Calculate a distance matrix using HTO
 hto.dist.mtx <- as.matrix(dist(t(GetAssayData(object = cd8s.hashtag.subset, assay = "ADT"))))

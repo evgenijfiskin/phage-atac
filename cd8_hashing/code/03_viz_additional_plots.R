@@ -9,7 +9,7 @@ p0 <- DimPlot(object = cd8s, label = FALSE, group.by = "seurat_clusters", size =
   theme_void() + NoLegend() 
 #cowplot::ggsave2(p0, file = "../plots/baseUmap.png", width = 4, height = 4, dpi = 500)
 
-p1 <- FeaturePlot(cd8s, c("c50"), max.cutoff = "q95") +scale_color_viridis() +
+p1 <- FeaturePlot(cd8s, c("c50"), max.cutoff = "q90") +scale_color_viridis() +
   theme_void() + NoLegend() + ggtitle("")
 
 p2 <- FeaturePlot(cd8s, c("c51"),  max.cutoff = "q90") +scale_color_viridis() +
@@ -21,10 +21,22 @@ p3 <- FeaturePlot(cd8s, c("c54"),max.cutoff = "q90") + scale_color_viridis() +
 p4 <- FeaturePlot(cd8s, c("c55"), max.cutoff = "q90") + scale_color_viridis() +
   theme_void() + NoLegend()  + ggtitle("")
 
-#cowplot::ggsave2(p1, file = "../plots/adt_c50.png", width = 4, height = 4, dpi = 500)
-#cowplot::ggsave2(p2, file = "../plots/adt_c51.png", width = 4, height = 4, dpi = 500)
-#cowplot::ggsave2(p3, file = "../plots/adt_c54.png", width = 4, height = 4, dpi = 500)
-#cowplot::ggsave2(p4, file = "../plots/adt_c55.png", width = 4, height = 4, dpi = 500)
+sapply(rownames(cd8s@assays$ADT@data), function(x){
+  quantile(cd8s@assays$ADT@data[x,],c(0.00, 0.90, 0.95))
+})
+
+
+
+cowplot::ggsave2(p1, file = "../plots/adt_c50.png", width = 4, height = 4, dpi = 500)
+cowplot::ggsave2(p2, file = "../plots/adt_c51.png", width = 4, height = 4, dpi = 500)
+cowplot::ggsave2(p3, file = "../plots/adt_c54.png", width = 4, height = 4, dpi = 500)
+cowplot::ggsave2(p4, file = "../plots/adt_c55.png", width = 4, height = 4, dpi = 500)
+
+cowplot::ggsave2(p1, file = "../plots/adt_c50.pdf", width = 4, height = 4)
+cowplot::ggsave2(p2, file = "../plots/adt_c51.pdf", width = 4, height = 4)
+cowplot::ggsave2(p3, file = "../plots/adt_c54.pdf", width = 4, height = 4)
+cowplot::ggsave2(p4, file = "../plots/adt_c55.pdf", width = 4, height = 4)
+
 
 
 #######
