@@ -6,19 +6,13 @@ library(dplyr)
 #-----
 # Analyze PBMC phage atac
 #-----
-peaks <- Read10X_h5("../data/aggr/filtered_peak_bc_matrix.h5")
-metadata <- read.csv(
-  file = "../data/aggr/singlecell.csv.gz",
-  header = TRUE,
-  row.names = 1
-) %>% filter(cell_id != "None")
-head(metadata); dim(metadata)
+peaks <- Read10X_h5("../data/aggr/filtered_feature_bc_matrix.h5")[[2]]
 
 chrom_assay <- CreateChromatinAssay(
   counts = peaks,
   sep = c(":", "-"),
-  genome = 'hg38',
-  fragments = '../../../phage_atac_large_data_files/input/asap_comparison/fragments.tsv.gz',
+  genome = 'mm10',
+  fragments = '../data/aggr/atac_fragments.tsv.gz',
   min.cells = 10,
   min.features = 10
 )
